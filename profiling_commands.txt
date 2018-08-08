@@ -1,0 +1,7 @@
+use admin
+db.setProfilingLevel()
+db.getProfilingStatus()
+db.getProfilingLevel()
+db.system.profile.find().pretty()
+
+mongod --profile 1 --slowms 15 --slowOpSampleRate 0.5
