@@ -1,6 +1,6 @@
 var bulk = db.test_collection.initializeUnorderedBulkOp();
 people = ["Marc", "Bill", "George", "Eliot", "Matt", "Trey", "Tracy", "Greg", "Steve", "Kristina", "Katie", "Jeff"];
-var n = Math.pow(10, 6);
+var n = Math.pow(10, 5);
 for(var i=0; i<n; i++){
    user_id = i;
    name = people[Math.floor(Math.random()*people.length)];

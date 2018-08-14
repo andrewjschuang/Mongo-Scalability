@@ -1,0 +1,93 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: mongos
+  namespace: dojot
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: mongos-role
+  namespace: dojot
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: mongos-role-binding
+  namespace: dojot
+subjects:
+- kind: ServiceAccount
+  name: mongos
+  namespace: dojot
+roleRef:
+  kind: Role
+  name: mongos-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongos
+  labels:
+    app: mongos
+  namespace: dojot
+spec:
+  clusterIP: None
+  ports:
+  - port: 27017
+    targetPort: 27017
+    name: mongos
+  selector:
+    app: mongos
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongos
+  namespace: dojot
+spec:
+  selector:
+    matchLabels:
+      app: mongos
+  serviceName: "mongos"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongos
+    spec:
+      terminationGracePeriodSeconds: 15
+      containers:
+      - name: mongos
+        image: mongo:4.0.0
+        command:
+        - mongos
+        - "--configdb"
+        - configReplSet/192.168.139.160:27019,192.168.139.163:27019,192.168.139.183:27019
+        ports:
+        - containerPort: 27017
+          name: mongos
+        # volumeMounts:
+        #   - name: mongo-volume
+        #     mountPath: /data/db
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        env:
+        - name: MONGO_SIDECAR_POD_LABELS
+          value: "app=mongos"
+        - name: KUBE_NAMESPACE
+          value: dojot
+      serviceAccountName: mongos
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: mongo-volume
+  #   spec:
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     storageClassName: dojot
+  #     resources:
+  #       requests:
+  #         storage: 1Gi
