@@ -1,13 +1,13 @@
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  name: mongos
+  name: mongodb
   namespace: dojot
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: mongos-role
+  name: mongodb-role
   namespace: dojot
 rules:
 - apiGroups: [""]
@@ -17,60 +17,60 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: mongos-role-binding
+  name: mongodb-role-binding
   namespace: dojot
 subjects:
 - kind: ServiceAccount
-  name: mongos
+  name: mongodb
   namespace: dojot
 roleRef:
   kind: Role
-  name: mongos-role
+  name: mongodb-role
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongos
+  name: mongodb
   labels:
-    app: mongos
+    app: mongodb
   namespace: dojot
 spec:
   clusterIP: None
   ports:
   - port: 27017
     targetPort: 27017
-    name: mongos
+    name: mongodb
   selector:
-    app: mongos
+    app: mongodb
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongos
+  name: mongodb
   namespace: dojot
 spec:
   selector:
     matchLabels:
-      app: mongos
-  serviceName: "mongos"
+      app: mongodb
+  serviceName: "mongodb"
   replicas: 1
   template:
     metadata:
       labels:
-        app: mongos
+        app: mongodb
     spec:
       terminationGracePeriodSeconds: 15
       containers:
-      - name: mongos
+      - name: mongodb
         image: mongo:4.0.0
         command:
         - mongos
         - "--configdb"
-        - configReplSet/192.168.139.160:27019,192.168.139.163:27019,192.168.139.183:27019
+        - configReplSet/10.32.0.9:27019,10.40.0.12:27019,10.46.0.4:27019
         ports:
         - containerPort: 27017
-          name: mongos
+          name: mongodb
         # volumeMounts:
         #   - name: mongo-volume
         #     mountPath: /data/db
@@ -78,10 +78,10 @@ spec:
         image: cvallance/mongo-k8s-sidecar
         env:
         - name: MONGO_SIDECAR_POD_LABELS
-          value: "app=mongos"
+          value: "app=mongodb"
         - name: KUBE_NAMESPACE
           value: dojot
-      serviceAccountName: mongos
+      serviceAccountName: mongodb
   # volumeClaimTemplates:
   # - metadata:
   #     name: mongo-volume
