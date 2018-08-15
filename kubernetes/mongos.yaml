@@ -68,6 +68,8 @@ spec:
         - mongos
         - "--configdb"
         - configReplSet/10.32.0.9:27019,10.40.0.12:27019,10.46.0.4:27019
+        - "--bind_ip"
+        - 0.0.0.0
         ports:
         - containerPort: 27017
           name: mongodb
