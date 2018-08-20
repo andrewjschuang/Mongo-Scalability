@@ -10,14 +10,14 @@ echo 'starting config server replica'
 kubectl -n dojot apply -f mongocfg.yaml
 
 echo 'waiting for initialization to finish'
-sleep 45
+sleep 1m
 
 echo 'starting mongos'
 export CONFIG_ENDPOINTS=$(kubectl -n dojot get endpoints mongocfg | grep mongocfg | awk '{print $2}')
 sed -i '/configReplSet/c\        - configReplSet/'"$CONFIG_ENDPOINTS" mongos.yaml
 kubectl -n dojot apply -f mongos.yaml
 
-sleep 5
+sleep 10
 
 echo 'adding shards to mongos'
 export RS0_ENDPOINTS=$(kubectl -n dojot get endpoints mongosh0 | grep mongosh0 | awk '{print $2}')
@@ -27,10 +27,10 @@ kubectl -n dojot exec mongodb-0 -- mongo --eval "sh.addShard('rs0/$RS0_ENDPOINTS
 kubectl -n dojot exec mongodb-0 -- mongo --eval "sh.addShard('rs1/$RS1_ENDPOINTS')"
 kubectl -n dojot exec mongodb-0 -- mongo --eval "sh.addShard('rs2/$RS2_ENDPOINTS')"
 
-echo 'enabling sharding'
-export SHARDJS=$(cat shard.js)
-kubectl -n dojot exec mongodb-0 -- mongo --eval "$SHARDJS"
+# echo 'enabling sharding'
+# export SHARDJS=$(cat shard.js)
+# kubectl -n dojot exec mongodb-0 -- mongo --eval "$SHARDJS"
 
-echo 'adding data'
-export ADDJS=$(cat add_data.js)
-kubectl -n dojot exec mongodb-0 -- mongo --eval "$ADDJS"
+# echo 'adding data'
+# export ADDJS=$(cat add_data.js)
+# kubectl -n dojot exec mongodb-0 -- mongo --eval "$ADDJS"
